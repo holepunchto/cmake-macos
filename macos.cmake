@@ -1,13 +1,15 @@
 set(macos_module_root ${CMAKE_CURRENT_LIST_DIR})
 
-function(add_macos_bundle_info)
+function(add_macos_bundle_info target)
   cmake_parse_arguments(
-    PARSE_ARGV 0 ARGV "" "DESTINATION;NAME;VERSION;DISPLAY_NAME;PUBLISHER_DISPLAY_NAME;IDENTIFIER;CATEGORY" ""
+    PARSE_ARGV 1 ARGV "" "DESTINATION;NAME;VERSION;DISPLAY_NAME;PUBLISHER_DISPLAY_NAME;IDENTIFIER;CATEGORY" ""
   )
 
   if(NOT ARGV_DESTINATION)
     set(ARGV_DESTINATION Info.plist)
   endif()
+
+  cmake_path(ABSOLUTE_PATH ARGV_DESTINATION BASE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" NORMALIZE)
 
   if(NOT DEFINED ARGV_DISPLAY_NAME)
     set(ARGV_DISPLAY_NAME "${ARGV_NAME}")
@@ -22,7 +24,7 @@ endfunction()
 
 function(add_macos_bundle target)
   cmake_parse_arguments(
-    PARSE_ARGV 1 ARGV "" "DESTINATION;INFO;ICON;TARGET;DEPENDS" ""
+    PARSE_ARGV 1 ARGV "" "DESTINATION;INFO;ICON;TARGET" "DEPENDS"
   )
 
   cmake_path(ABSOLUTE_PATH ARGV_DESTINATION BASE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" NORMALIZE)
@@ -45,24 +47,28 @@ function(add_macos_bundle target)
     cmake_path(APPEND base "Info.plist" OUTPUT_VARIABLE ARGV_INFO)
   endif()
 
-  configure_file("${ARGV_INFO}" "${ARGV_DESTINATION}/Contents/Info.plist" COPYONLY)
+  cmake_path(ABSOLUTE_PATH ARGV_ICON NORMALIZE)
 
-  if(ARGV_ICON)
-    configure_file("${ARGV_ICON}" "${ARGV_DESTINATION}/Contents/Resources/icon.icns" COPYONLY)
-  endif()
-
-  configure_file("${macos_module_root}/PkgInfo" "${ARGV_DESTINATION}/Contents/PkgInfo" COPYONLY)
-
-  add_custom_target(
-    ${target}_bin
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ARGV_EXECUTABLE}" "${ARGV_DESTINATION}/Contents/MacOS/${ARGV_EXECUTABLE_NAME}"
+  list(APPEND commands
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ARGV_INFO}" "${ARGV_DESTINATION}/Contents/Info.plist"
   )
 
-  list(APPEND ARGV_DEPENDS ${target}_bin)
+  if(ARGV_ICON)
+    list(APPEND commands
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ARGV_ICON}" "${ARGV_DESTINATION}/Contents/Resources/icon.icns"
+    )
+  endif()
+
+  list(APPEND commands
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ARGV_EXECUTABLE}" "${ARGV_DESTINATION}/Contents/MacOS/${ARGV_EXECUTABLE_NAME}"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${macos_module_root}/PkgInfo" "${ARGV_DESTINATION}/Contents/PkgInfo"
+  )
 
   add_custom_target(
     ${target}
     ALL
+    ${commands}
     DEPENDS ${ARGV_DEPENDS}
   )
 endfunction()

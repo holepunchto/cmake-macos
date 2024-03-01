@@ -9,7 +9,7 @@
   <key>CFBundleDisplayName</key>
   <string>${ARGV_DISPLAY_NAME}</string>
   <key>CFBundleExecutable</key>
-  <string>${ARGV_EXECUTABLE}</string>
+  <string>${ARGV_EXECUTABLE_NAME}</string>
   <key>CFBundleIdentifier</key>
   <string>${ARGV_IDENTIFIER}</string>
   <key>CFBundleIconFile</key>

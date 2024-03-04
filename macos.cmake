@@ -1,5 +1,17 @@
 set(macos_module_root ${CMAKE_CURRENT_LIST_DIR})
 
+function(find_codesign result)
+  find_program(
+    codesign
+    NAMES codesign
+    REQUIRED
+  )
+
+  set(${result} "${codesign}")
+
+  return(PROPAGATE ${result})
+endfunction()
+
 function(add_macos_bundle_info target)
   set(one_value_keywords
     DESTINATION
@@ -125,6 +137,50 @@ function(add_macos_bundle target)
     ${target}
     ALL
     ${commands}
+    DEPENDS ${ARGV_DEPENDS}
+  )
+endfunction()
+
+function(code_sign_macos_bundle target)
+  set(one_value_keywords
+    PATH
+    IDENTITY
+    ENTITLEMENTS
+    KEYCHAIN
+  )
+
+  set(multi_value_keywords
+    DEPENDS
+  )
+
+  cmake_parse_arguments(
+    PARSE_ARGV 1 ARGV "" "${one_value_keywords}" "${multi_value_keywords}"
+  )
+
+  if(NOT ARGV_IDENTITY)
+    set(ARGV_IDENTITY "Apple Development")
+  endif()
+
+  cmake_path(ABSOLUTE_PATH ARGV_PATH NORMALIZE)
+
+  list(APPEND args --force --sign "${ARGV_IDENTITY}")
+
+  if(ARGS_ENTITLEMENTS)
+    cmake_path(ABSOLUTE_PATH ARGV_ENTITLEMENTS NORMALIZE)
+
+    list(APPEND args --entitlements "${ARGV_ENTITLEMENTS}")
+  endif()
+
+  if(ARGS_KEYCHAIN)
+    list(APPEND args --keychain "${ARGV_KEYCHAIN}")
+  endif()
+
+  find_codesign(codesign)
+
+  add_custom_target(
+    ${target}
+    ALL
+    COMMAND ${codesign} ${args} "${ARGV_PATH}"
     DEPENDS ${ARGV_DEPENDS}
   )
 endfunction()

@@ -203,7 +203,12 @@ function(code_sign_macos_bundle target)
     cmake_path(APPEND base "Entitlements.plist" OUTPUT_VARIABLE ARGV_ENTITLEMENTS)
   endif()
 
-  list(APPEND args --force --sign "${ARGV_IDENTITY}" --entitlements "${ARGV_ENTITLEMENTS}")
+  list(APPEND args
+    --timestamp
+    --options runtime
+    --entitlements "${ARGV_ENTITLEMENTS}"
+    --sign "${ARGV_IDENTITY}"
+  )
 
   if(ARGS_KEYCHAIN)
     list(APPEND args --keychain "${ARGV_KEYCHAIN}")

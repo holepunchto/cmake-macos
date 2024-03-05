@@ -41,8 +41,6 @@ function(add_macos_entitlements target)
 
   string(CONFIGURE "${template}" template)
 
-  message("${template}")
-
   file(GENERATE OUTPUT "${ARGV_DESTINATION}" CONTENT "${template}" NEWLINE_STYLE UNIX)
 endfunction()
 

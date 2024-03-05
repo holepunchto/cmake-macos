@@ -12,6 +12,40 @@ function(find_codesign result)
   return(PROPAGATE ${result})
 endfunction()
 
+function(add_macos_entitlements target)
+  set(one_value_keywords
+    DESTINATION
+  )
+
+  set(multi_value_keywords
+    ENTITLEMENTS
+  )
+
+  cmake_parse_arguments(
+    PARSE_ARGV 1 ARGV "" "${one_value_keywords}" "${multi_value_keywords}"
+  )
+
+  if(NOT ARGV_DESTINATION)
+    set(ARGV_DESTINATION Entitlements.plist)
+  endif()
+
+  cmake_path(ABSOLUTE_PATH ARGV_DESTINATION BASE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" NORMALIZE)
+
+  list(TRANSFORM ARGV_ENTITLEMENTS PREPEND "  <key>")
+
+  list(TRANSFORM ARGV_ENTITLEMENTS APPEND "</key>\n  <true/>")
+
+  list(JOIN ARGV_ENTITLEMENTS "\n" ARGV_ENTITLEMENTS)
+
+  file(READ "${macos_module_root}/Entitlements.plist" template)
+
+  string(CONFIGURE "${template}" template)
+
+  message("${template}")
+
+  file(GENERATE OUTPUT "${ARGV_DESTINATION}" CONTENT "${template}" NEWLINE_STYLE UNIX)
+endfunction()
+
 function(add_macos_bundle_info target)
   set(one_value_keywords
     DESTINATION
@@ -144,8 +178,8 @@ endfunction()
 function(code_sign_macos_bundle target)
   set(one_value_keywords
     PATH
-    IDENTITY
     ENTITLEMENTS
+    IDENTITY
     KEYCHAIN
   )
 
@@ -163,13 +197,15 @@ function(code_sign_macos_bundle target)
 
   cmake_path(ABSOLUTE_PATH ARGV_PATH NORMALIZE)
 
-  list(APPEND args --force --sign "${ARGV_IDENTITY}")
+  cmake_path(GET ARGV_PATH PARENT_PATH base)
 
-  if(ARGS_ENTITLEMENTS)
+  if(ARGV_ENTITLEMENTS)
     cmake_path(ABSOLUTE_PATH ARGV_ENTITLEMENTS NORMALIZE)
-
-    list(APPEND args --entitlements "${ARGV_ENTITLEMENTS}")
+  else()
+    cmake_path(APPEND base "Entitlements.plist" OUTPUT_VARIABLE ARGV_ENTITLEMENTS)
   endif()
+
+  list(APPEND args --force --sign "${ARGV_IDENTITY}" --entitlements "${ARGV_ENTITLEMENTS}")
 
   if(ARGS_KEYCHAIN)
     list(APPEND args --keychain "${ARGV_KEYCHAIN}")

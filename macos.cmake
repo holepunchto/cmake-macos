@@ -132,7 +132,7 @@ function(add_macos_bundle target)
   )
 
   if(ARGV_ICON)
-    list(APPEND ARGV_RESOURCES FILE "${ARGV_ICON}" "icon.icns")
+    list(APPEND ARGV_RESOURCES FILE "${ARGV_ICON}" "icon.png")
   endif()
 
   while(TRUE)

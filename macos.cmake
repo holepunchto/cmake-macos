@@ -173,9 +173,10 @@ function(add_macos_bundle target)
   )
 endfunction()
 
-function(code_sign_macos_bundle target)
+function(code_sign_macos target)
   set(one_value_keywords
     PATH
+    TARGET
     ENTITLEMENTS
     IDENTITY
     KEYCHAIN
@@ -189,13 +190,19 @@ function(code_sign_macos_bundle target)
     PARSE_ARGV 1 ARGV "" "${one_value_keywords}" "${multi_value_keywords}"
   )
 
+  if(ARGV_TARGET)
+    set(ARGV_PATH $<TARGET_FILE:${ARGV_TARGET}>)
+
+    set(base $<TARGET_FILE_DIR:${ARGV_TARGET}>)
+  else()
+    cmake_path(ABSOLUTE_PATH ARGV_PATH NORMALIZE)
+
+    cmake_path(GET ARGV_PATH PARENT_PATH base)
+  endif()
+
   if(NOT ARGV_IDENTITY)
     set(ARGV_IDENTITY "Apple Development")
   endif()
-
-  cmake_path(ABSOLUTE_PATH ARGV_PATH NORMALIZE)
-
-  cmake_path(GET ARGV_PATH PARENT_PATH base)
 
   if(ARGV_ENTITLEMENTS)
     cmake_path(ABSOLUTE_PATH ARGV_ENTITLEMENTS NORMALIZE)

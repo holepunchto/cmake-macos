@@ -12,6 +12,18 @@ function(find_codesign result)
   return(PROPAGATE ${result})
 endfunction()
 
+function(find_iconutil result)
+  find_program(
+    iconutil
+    NAMES iconutil
+    REQUIRED
+  )
+
+  set(${result} "${iconutil}")
+
+  return(PROPAGATE ${result})
+endfunction()
+
 function(add_macos_entitlements target)
   set(one_value_keywords
     DESTINATION
@@ -42,6 +54,72 @@ function(add_macos_entitlements target)
   string(CONFIGURE "${template}" template)
 
   file(GENERATE OUTPUT "${ARGV_DESTINATION}" CONTENT "${template}" NEWLINE_STYLE UNIX)
+endfunction()
+
+function(add_macos_iconset target)
+  set(one_value_keywords
+    DESTINATION
+  )
+
+  set(multi_value_keywords
+    ICONS
+    DEPENDS
+  )
+
+  cmake_parse_arguments(
+    PARSE_ARGV 1 ARGV "" "${one_value_keywords}" "${multi_value_keywords}"
+  )
+
+  if(NOT ARGV_DESTINATION)
+    set(ARGV_DESTINATION icon.icns)
+  endif()
+
+  cmake_path(ABSOLUTE_PATH ARGV_DESTINATION BASE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" NORMALIZE)
+
+  cmake_path(GET ARGV_DESTINATION STEM stem)
+
+  while(TRUE)
+    list(LENGTH ARGV_ICONS len)
+
+    if(len LESS 3)
+      break()
+    endif()
+
+    list(POP_FRONT ARGV_ICONS path size scale)
+
+    cmake_path(ABSOLUTE_PATH path NORMALIZE)
+
+    if(NOT size MATCHES "^(16|32|64|128|256|512)$")
+      continue()
+    endif()
+
+    if(NOT scale MATCHES "^(1|2)x$")
+      continue()
+    endif()
+
+    if(scale EQUAL "1x")
+      set(scale "")
+    else()
+      set(scale "@${scale}")
+    endif()
+
+    list(APPEND commands
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${path}" "${stem}.iconset/icon_${size}x${size}${scale}.png"
+    )
+  endwhile()
+
+  find_iconutil(iconutil)
+
+  list(APPEND commands
+    COMMAND ${iconutil} --convert icns --output "${ARGV_DESTINATION}" "${stem}.iconset"
+  )
+
+  add_custom_target(
+    ${target}
+    ALL
+    ${commands}
+    DEPENDS ${ARGV_DEPENDS}
+  )
 endfunction()
 
 function(add_macos_bundle_info target)
@@ -132,7 +210,7 @@ function(add_macos_bundle target)
   )
 
   if(ARGV_ICON)
-    list(APPEND ARGV_RESOURCES FILE "${ARGV_ICON}" "icon.png")
+    list(APPEND ARGV_RESOURCES FILE "${ARGV_ICON}" "icon.icns")
   endif()
 
   while(TRUE)

@@ -172,6 +172,7 @@ function(add_macos_bundle target)
     INFO
     ICON
     TARGET
+    EXECUTABLE
   )
 
   set(multi_value_keywords

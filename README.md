@@ -72,7 +72,6 @@ A sequence of arguments specifying:
 - `<size>`: Size of the icon variant (e.g., 16, 32, 128)
 - `<scale>`: Scale factor (e.g., 1x, 2x)
 
-
 #### `add_macos_bundle_info`
 
 Generates the `Info.plist` file with macOS application metadata.

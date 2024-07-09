@@ -204,15 +204,17 @@ function(add_macos_bundle target)
     cmake_path(APPEND base "Info.plist" OUTPUT_VARIABLE ARGV_INFO)
   endif()
 
-  cmake_path(ABSOLUTE_PATH ARGV_ICON NORMALIZE)
+  if(ARGV_ICON)
+    cmake_path(ABSOLUTE_PATH ARGV_ICON NORMALIZE)
+  else()
+    cmake_path(APPEND base "icon.icns" OUTPUT_VARIABLE ARGV_ICON)
+  endif()
 
   list(APPEND commands
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ARGV_INFO}" "${ARGV_DESTINATION}/Contents/Info.plist"
   )
 
-  if(ARGV_ICON)
-    list(APPEND ARGV_RESOURCES FILE "${ARGV_ICON}" "icon.icns")
-  endif()
+  list(APPEND ARGV_RESOURCES FILE "${ARGV_ICON}" "icon.icns")
 
   while(TRUE)
     list(LENGTH ARGV_RESOURCES len)

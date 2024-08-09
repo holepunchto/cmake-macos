@@ -293,6 +293,7 @@ function(code_sign_macos target)
 
   list(APPEND args
     --timestamp
+    --force
     --options runtime
     --entitlements "${ARGV_ENTITLEMENTS}"
     --sign "${ARGV_IDENTITY}"

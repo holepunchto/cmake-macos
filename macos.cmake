@@ -1,4 +1,6 @@
-set(macos_module_root ${CMAKE_CURRENT_LIST_DIR})
+include_guard(GLOBAL)
+
+set(macos_module_dir "${CMAKE_CURRENT_LIST_DIR}")
 
 function(find_codesign result)
   find_program(
@@ -49,7 +51,7 @@ function(add_macos_entitlements target)
 
   list(JOIN ARGV_ENTITLEMENTS "\n" ARGV_ENTITLEMENTS)
 
-  file(READ "${macos_module_root}/Entitlements.plist" template)
+  file(READ "${macos_module_dir}/Entitlements.plist" template)
 
   string(CONFIGURE "${template}" template)
 
@@ -159,7 +161,7 @@ function(add_macos_bundle_info target)
     set(ARGV_DISPLAY_NAME "${ARGV_NAME}")
   endif()
 
-  file(READ "${macos_module_root}/Info.plist" template)
+  file(READ "${macos_module_dir}/Info.plist" template)
 
   string(CONFIGURE "${template}" template)
 
@@ -243,7 +245,7 @@ function(add_macos_bundle target)
   list(APPEND commands
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ARGV_EXECUTABLE}" "${ARGV_DESTINATION}/Contents/MacOS/${ARGV_EXECUTABLE_NAME}"
 
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${macos_module_root}/PkgInfo" "${ARGV_DESTINATION}/Contents/PkgInfo"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${macos_module_dir}/PkgInfo" "${ARGV_DESTINATION}/Contents/PkgInfo"
   )
 
   add_custom_target(

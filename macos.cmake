@@ -80,6 +80,8 @@ function(add_macos_iconset target)
 
   cmake_path(GET ARGV_DESTINATION STEM stem)
 
+  set(commands)
+
   while(TRUE)
     list(LENGTH ARGV_ICONS len)
 
@@ -212,7 +214,7 @@ function(add_macos_bundle target)
     cmake_path(APPEND base "icon.icns" OUTPUT_VARIABLE ARGV_ICON)
   endif()
 
-  list(APPEND commands
+  set(commands
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ARGV_INFO}" "${ARGV_DESTINATION}/Contents/Info.plist"
   )
 
@@ -293,7 +295,7 @@ function(code_sign_macos target)
     cmake_path(APPEND base "Entitlements.plist" OUTPUT_VARIABLE ARGV_ENTITLEMENTS)
   endif()
 
-  list(APPEND args
+  set(args
     --timestamp
     --force
     --options runtime
